@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<title>Zenova Focus</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f0f4f8;--surf:#fff;--surf2:#e8eef5;--surf3:#dde5ef;
+  --bdr:rgba(10,25,60,.08);--bdr2:rgba(10,25,60,.13);--bdr3:rgba(10,25,60,.2);
+  --acc:#0a3d8f;--acc2:#1a56c4;--accd:#0d2d6b;
+  --gold:#c47f00;--red:#c0392b;--grn:#1a7a3c;
+  --txt:#1a2a45;--txt2:#4a6080;--txt3:#8099b8;
+  --rlg:20px;--rxl:24px;--sh:0 4px 32px rgba(10,25,60,.1);--nav:74px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+h1,h2,h3{font-family:'Playfair Display',serif;line-height:1.2}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;padding-bottom:calc(var(--nav)+20px);position:relative;z-index:1}
+.screen.show{display:block}
+.auth-screen.show{display:flex;flex-direction:column;min-height:100vh;padding-bottom:0}
+
+/* ── TOPBAR ── */
+.topbar{background:rgba(10,29,64,.97);height:62px;display:flex;align-items:center;padding:0 16px;gap:8px;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.08)}
+.tb-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#fff;flex:1}
+.tb-badge{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:4px 10px;font-size:.72rem;font-weight:700}
+.tb-streak{color:#a8d8ff}
+.tb-xp{color:#ffd54f;background:rgba(255,220,100,.1);border-color:rgba(255,220,100,.2)}
+.tb-av{width:33px;height:33px;border-radius:50%;background:linear-gradient(135deg,#1a56c4,#4a90e2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.76rem;color:#fff;cursor:pointer;flex-shrink:0;border:none;font-family:'DM Sans',sans-serif}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:var(--nav);background:rgba(10,29,64,.98);border-top:1px solid rgba(255,255,255,.08);display:none;align-items:stretch;z-index:200}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;font-family:'DM Sans',sans-serif;padding:8px 4px;position:relative}
+.bni-icon{font-size:1.2rem;transition:transform .2s}
+.bni-lbl{font-size:.58rem;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.03em;text-transform:uppercase}
+.bni.active .bni-lbl{color:#a8d8ff}
+.bni.active .bni-icon{transform:translateY(-2px)}
+.bni.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:#4a90e2;border-radius:0 0 4px 4px;box-shadow:0 0 12px rgba(74,144,226,.5)}
+
+/* ── AUTH ── */
+.auth-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-card{background:var(--surf);border:1px solid var(--bdr2);border-radius:var(--rxl);padding:38px 30px;width:100%;max-width:420px;box-shadow:0 32px 80px rgba(10,25,60,.15);animation:fadeUp .4s ease both}
+.auth-brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:6px}
+.auth-brand h1{font-size:1.85rem;color:var(--acc)}
+.auth-sub{text-align:center;color:var(--txt2);font-size:.83rem;margin-bottom:26px}
+.auth-sw{text-align:center;margin-top:18px;font-size:.83rem;color:var(--txt2)}
+.auth-sw span{color:var(--acc);font-weight:700;cursor:pointer}
+.err{background:rgba(248,113,113,.08);color:#fca5a5;padding:11px 15px;border-radius:10px;font-size:.82rem;margin-bottom:14px;display:none;border:1px solid rgba(248,113,113,.18)}
+
+/* ── FORM ── */
+.field{margin-bottom:15px}
+.field label{display:block;font-size:.68rem;font-weight:700;color:var(--txt3);margin-bottom:7px;text-transform:uppercase;letter-spacing:.1em}
+.inp,.sel{width:100%;padding:11px 14px;border:1.5px solid var(--bdr2);border-radius:11px;font-size:.89rem;font-family:'DM Sans',sans-serif;color:var(--txt);background:#f7faff;outline:none;transition:border .18s,box-shadow .18s;-webkit-appearance:none}
+.inp:focus,.sel:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(26,86,196,.1)}
+.inp::placeholder{color:var(--txt3)}
+textarea.inp{resize:vertical;min-height:78px}
+.sel option{background:#f7faff;color:var(--txt)}
+.chk{width:16px;height:16px;accent-color:var(--acc);cursor:pointer;flex-shrink:0}
+.pw-str{height:4px;border-radius:99px;background:var(--surf3);margin-top:7px;overflow:hidden}
+.pw-str-fill{height:100%;border-radius:99px;width:0;transition:width .3s,background .3s}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 20px;border-radius:11px;font-size:.87rem;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .18s;border:none;letter-spacing:.01em}
+.btn:active{transform:scale(.96)}
+.btn-p{background:linear-gradient(135deg,var(--acc2),var(--accd));color:#fff;box-shadow:0 4px 18px rgba(26,86,196,.25)}
+.btn-p:hover{box-shadow:0 4px 26px rgba(26,86,196,.4);transform:translateY(-1px)}
+.btn-g{background:transparent;color:var(--txt2);border:1px solid var(--bdr2)}
+.btn-g:hover{background:var(--surf2)}
+.btn-red{background:rgba(192,57,43,.08);color:var(--red);border:1px solid rgba(192,57,43,.2)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-grn{background:rgba(26,86,196,.08);color:var(--acc);border:1px solid rgba(26,86,196,.2)}
+.btn-grn:hover{background:var(--acc);color:#fff}
+.btn-surf{background:var(--surf3);color:var(--txt);border:1px solid var(--bdr2)}
+.btn-danger{background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff}
+.btn-sm{padding:6px 13px;font-size:.77rem;border-radius:9px}
+.btn-full{width:100%}
+
+/* ── CARDS ── */
+.card{background:var(--surf);border-radius:var(--rlg);padding:18px;border:1px solid var(--bdr);box-shadow:var(--sh)}
+.card-title{font-size:.98rem;color:var(--txt);margin-bottom:15px;display:flex;align-items:center;gap:8px;font-weight:600}
+.pw{padding:14px}
+
+/* ── STAT GRID ── */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.sbox{background:var(--surf);border-radius:15px;padding:16px;border:1px solid var(--bdr)}
+.sbox .sv{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:var(--acc);line-height:1}
+.sbox .si{font-size:1.1rem;margin-bottom:6px}
+.sbox .sl{font-size:.65rem;text-transform:uppercase;letter-spacing:.09em;color:var(--txt3);margin-top:4px;font-weight:700}
+
+/* ── HERO ── */
+.hero{background:var(--surf);border-radius:var(--rlg);padding:20px;margin-bottom:14px;position:relative;overflow:hidden;border:1px solid var(--bdr)}
+.hero::before{content:'';position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(26,86,196,.06) 0%,transparent 70%);top:-70px;right:-50px}
+.hero-greet{color:var(--txt2);font-size:.78rem;margin-bottom:2px;position:relative;z-index:1}
+.hero-name{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;color:var(--acc);position:relative;z-index:1;margin-bottom:3px}
+.hero-date{color:var(--txt3);font-size:.73rem;position:relative;z-index:1}
+.hero-streak{display:inline-flex;align-items:center;gap:5px;background:rgba(26,86,196,.08);border:1px solid rgba(26,86,196,.15);color:var(--acc);padding:5px 13px;border-radius:20px;font-size:.74rem;font-weight:700;margin-top:11px;position:relative;z-index:1}
+
+/* ── RINGS ── */
+.rings-wrap{display:flex;justify-content:space-around;padding:18px 8px 14px}
+.ring-item{display:flex;flex-direction:column;align-items:center;gap:7px}
+.ring-svg{width:100px;height:100px}
+.ring-lbl{font-size:.63rem;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em}
+
+/* ── LEVEL BAR ── */
+.lvl-wrap{background:var(--surf2);border-radius:13px;padding:13px 15px;border:1px solid var(--bdr)}
+.lvl-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.lvl-badge{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#c47f00,#a36800);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:#fff8e1;font-family:'Playfair Display',serif;flex-shrink:0}
+.lvl-name{font-weight:700;color:var(--acc);font-size:.9rem}
+.lvl-xp{font-size:.71rem;color:var(--txt2);margin-top:1px}
+.xp-bar{height:7px;background:var(--surf3);border-radius:99px;overflow:hidden}
+.xp-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#c47f00,#e8a000);transition:width 1s ease}
+
+/* ── TASK CARDS ── */
+.tc{background:var(--surf);border-radius:13px;padding:13px 14px;border:1px solid var(--bdr);margin-bottom:9px}
+.tc.tc-done{background:rgba(26,122,60,.04);border-color:rgba(26,122,60,.2)}
+.tc-hdr{display:flex;align-items:center;gap:10px}
+.tc-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.tc-icon.c-ex{background:rgba(26,86,196,.1)}
+.tc-icon.c-pr{background:rgba(10,61,143,.08)}
+.tc-icon.c-fo{background:rgba(26,86,196,.08)}
+.tc-icon.c-le{background:rgba(26,86,196,.08)}
+.tc-icon.c-pe{background:rgba(91,63,168,.1)}
+.tc-icon.c-re{background:rgba(74,96,128,.08)}
+.tc-title{font-weight:700;font-size:.88rem;color:var(--txt)}
+.tc-title.done{text-decoration:line-through;color:var(--txt3)}
+.tc-meta{font-size:.71rem;color:var(--txt3);margin-top:2px}
+.tc-acts{display:flex;gap:5px;margin-left:auto;flex-shrink:0}
+.done-badge{display:inline-flex;align-items:center;gap:3px;font-size:.72rem;font-weight:700;color:var(--grn);background:rgba(26,122,60,.1);padding:3px 9px;border-radius:20px;border:1px solid rgba(26,122,60,.2);white-space:nowrap}
+.prog-bar{height:4px;background:var(--surf3);border-radius:99px;overflow:hidden;margin-top:8px}
+.prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#1a56c4,#4a90e2)}
+
+/* ── DONE SECTION ── */
+.done-hdr{display:flex;align-items:center;gap:9px;margin:14px 0 10px}
+.done-hdr::before,.done-hdr::after{content:'';flex:1;height:1px;background:rgba(26,122,60,.2)}
+.done-hdr span{font-size:.67rem;font-weight:700;color:var(--grn);text-transform:uppercase;letter-spacing:.09em;white-space:nowrap}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:3px;background:var(--surf2);border-radius:11px;padding:3px;margin-bottom:14px;border:1px solid var(--bdr)}
+.tab{flex:1;text-align:center;padding:7px 4px;border-radius:9px;font-size:.75rem;font-weight:500;color:var(--txt3);cursor:pointer;border:none;background:transparent;font-family:'DM Sans',sans-serif;transition:all .2s}
+.tab.active{background:var(--surf3);color:var(--txt);font-weight:700;border:1px solid var(--bdr2)}
+
+/* ── LIST ITEMS ── */
+.li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bdr)}
+.li:last-child{border-bottom:none}
+.li-body{flex:1;min-width:0}
+.li-name{font-weight:600;color:var(--txt);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li-sub{font-size:.71rem;color:var(--txt3);margin-top:2px}
+
+/* ── TAGS ── */
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:.65rem;font-weight:700}
+.t-grn{background:rgba(26,122,60,.1);color:var(--grn);border:1px solid rgba(26,122,60,.2)}
+.t-ora{background:rgba(196,127,0,.09);color:#c47f00}
+.t-red{background:rgba(192,57,43,.1);color:var(--red)}
+.t-blu{background:rgba(26,86,196,.1);color:#1a56c4}
+
+/* ── CHALLENGES ── */
+.ch-card{background:var(--surf);border-radius:15px;padding:15px;border:1px solid var(--bdr);margin-bottom:9px;position:relative;overflow:hidden}
+.ch-card.active{border-color:rgba(26,86,196,.25)}
+.ch-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.ch-card.ch-w::before{background:linear-gradient(90deg,#1a56c4,#4a90e2)}
+.ch-card.ch-d::before{background:linear-gradient(90deg,#c0392b,#c0520a)}
+.ch-card.ch-f::before{background:linear-gradient(90deg,#5b3fa8,#1a56c4)}
+.ch-card.ch-r::before{background:linear-gradient(90deg,#c47f00,#c0520a)}
+.ch-hdr{display:flex;align-items:center;gap:11px;margin-bottom:10px}
+.ch-ico{font-size:1.4rem;width:44px;height:44px;background:var(--surf2);border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ch-days{display:flex;gap:2px;flex-wrap:wrap;margin-top:8px}
+.ch-day{width:8px;height:8px;border-radius:2px;background:var(--surf3)}
+.ch-day.done{background:#1a56c4}
+.ch-day.today{background:#c47f00;box-shadow:0 0 5px #c47f00}
+
+/* ── AI ── */
+.ai-box{background:linear-gradient(135deg,rgba(26,86,196,.06),rgba(91,63,168,.05));border:1px solid rgba(26,86,196,.15);border-radius:13px;padding:13px 15px;margin-bottom:9px}
+.ai-lbl{font-size:.65rem;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+
+/* ── HEATMAP ── */
+.heat{display:flex;gap:3px;flex-wrap:wrap}
+.hd{width:13px;height:13px;border-radius:3px}
+.h0{background:var(--surf2)}.h1{background:rgba(26,86,196,.18)}.h2{background:rgba(26,86,196,.45)}.h3{background:#1a56c4}
+
+/* ── ACHIEVEMENTS ── */
+.ach{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--bdr)}
+.ach:last-child{border-bottom:none}
+.ach.locked{opacity:.25}
+.ach-ico{font-size:1.2rem;width:40px;height:40px;background:var(--surf2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--bdr)}
+.ach.unlocked .ach-ico{background:rgba(26,86,196,.08);border-color:rgba(26,86,196,.2)}
+.ach-name{font-weight:700;color:var(--txt);font-size:.84rem}
+.ach-desc{font-size:.7rem;color:var(--txt3);margin-top:2px}
+
+/* ── STREAK DOTS ── */
+.sdots{display:flex;gap:5px;flex-wrap:wrap}
+.sdot{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.61rem;font-weight:700}
+.sdot.on{background:linear-gradient(135deg,#1a56c4,#4a90e2);color:#fff}
+.sdot.off{background:var(--surf2);color:var(--txt3);border:1px solid var(--bdr)}
+
+/* ── BAR CHART ── */
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:68px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center}
+.bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:2px}
+
+/* ── PROGRESS BARS ── */
+.pw-bar{background:var(--surf3);border-radius:99px;height:6px;overflow:hidden;margin-top:6px}
+.pw-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#1a56c4,#4a90e2);transition:width .8s ease}
+
+/* ── DISCIPLINE MODAL ── */
+#disc-modal{position:fixed;inset:0;background:rgba(240,244,248,.97);z-index:5000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(12px)}
+#disc-modal.show{display:flex}
+.disc-card{background:var(--surf);border:1px solid var(--bdr3);border-radius:var(--rxl);padding:34px 26px;width:100%;max-width:380px;text-align:center;animation:fadeUp .3s ease both}
+.disc-card h2{font-size:1.65rem;color:var(--acc);margin-bottom:6px}
+.disc-card p{color:var(--txt2);font-size:.85rem;margin-bottom:22px;line-height:1.6}
+.disc-tname{color:var(--acc);font-weight:700;font-size:.97rem;margin-bottom:20px;background:rgba(26,86,196,.07);border:1px solid rgba(26,86,196,.15);padding:10px 16px;border-radius:10px}
+.disc-timer{font-family:'Playfair Display',serif;font-size:3.8rem;font-weight:700;color:var(--acc);line-height:1;margin-bottom:5px}
+.disc-phase{font-size:.7rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:22px}
+
+/* ── PROFILE ── */
+.prof-hero{background:var(--surf);border-radius:var(--rlg);padding:24px;text-align:center;margin-bottom:13px;position:relative;overflow:hidden;border:1px solid var(--bdr)}
+.prof-av{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,#1a56c4,#4a90e2);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;font-family:'Playfair Display',serif;margin:0 auto 12px;box-shadow:0 0 28px rgba(26,86,196,.2)}
+.prof-name{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--acc)}
+.prof-email{color:var(--txt3);font-size:.75rem;margin-top:3px}
+.streak-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(26,86,196,.08);border:1px solid rgba(26,86,196,.15);color:var(--acc);padding:5px 13px;border-radius:20px;font-size:.74rem;font-weight:700;margin-top:10px}
+
+/* ── FRIEND CHALLENGES ── */
+.fc-card{background:var(--surf2);border-radius:13px;padding:14px;border:1px solid var(--bdr);margin-bottom:9px}
+.fc-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#5b3fa8,#1a56c4);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;color:#fff;flex-shrink:0}
+.fc-num{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;line-height:1}
+
+/* ── MISC ── */
+.empty{text-align:center;padding:26px 14px;color:var(--txt3)}
+.empty .ei{font-size:2rem;margin-bottom:8px;opacity:.4}
+.empty p{font-size:.81rem;margin-bottom:12px}
+#toast-wrap{position:fixed;bottom:calc(var(--nav)+10px);right:13px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{background:var(--surf);color:var(--txt);padding:11px 15px;border-radius:11px;font-size:.81rem;font-weight:500;box-shadow:0 8px 28px rgba(10,25,60,.15);animation:slideT .25s ease;display:flex;align-items:center;gap:8px;border:1px solid var(--bdr2);border-left:3px solid var(--acc)}
+.toast.terr{border-left-color:var(--red)}
+.toast.tgld{border-left-color:var(--gold)}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(10,25,60,.1);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite}
+#load-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:13px}
+#load-screen p{color:var(--txt3);font-size:.76rem;letter-spacing:.07em;text-transform:uppercase}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideT{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fi{animation:fadeUp .35s ease both}
+.fi2{animation:fadeUp .35s .07s ease both}
+.fi3{animation:fadeUp .35s .14s ease both}
+.fi4{animation:fadeUp .35s .21s ease both}
+.fi5{animation:fadeUp .35s .28s ease both}
+</style>
+</head>
+<body>
+
+<div id="load-screen"><div id="ll"></div><div class="spin"></div><p>Loading Zenova Focus</p></div>
+<div id="toast-wrap"></div>
+
+<!-- DISCIPLINE MODAL -->
+<div id="disc-modal">
+  <div class="disc-card">
+    <div style="font-size:2.2rem;margin-bottom:10px">🔒</div>
+    <h2>Discipline Mode</h2>
+    <p>You started this task. Complete it — or reset your whole day.</p>
+    <div class="disc-tname" id="disc-tname"></div>
+    <div class="disc-timer" id="disc-timer">30:00</div>
+    <div class="disc-phase" id="disc-phase">Time Remaining</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <button class="btn btn-p" onclick="discDone()">✅ Mark Complete</button>
+      <button class="btn btn-danger" onclick="discRestart()">🔄 Restart Day (Reset All)</button>
+      <button class="btn btn-g btn-sm" onclick="discClose()" style="margin-top:4px">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen auth-screen" id="sc-login">
+  <div class="auth-wrap">
+    <div class="auth-card fi">
+      <div class="auth-brand"><div id="ll2"></div><h1>Zenova Focus</h1></div>
+      <p class="auth-sub">Your personal performance & discipline companion</p>
+      <div id="login-err" class="err"></div>
+      <div class="field"><label>Email</label><input id="l-email" class="inp" type="email" placeholder="you@email.com" autocomplete="email"/></div>
+      <div class="field"><label>Password</label><input id="l-pass" class="inp" type="password" placeholder="••••••••"/></div>
+      <button class="btn btn-p btn-full" id="login-btn" onclick="doLogin()">Sign In →</button>
+      <p class="auth-sw">No account? <span onclick="nav('sc-signup')">Create one free</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div class="screen auth-screen" id="sc-signup">
+  <div class="auth-wrap">
+    <div class="auth-card fi">
+      <div class="auth-brand"><div id="ll3"></div><h1>Zenova Focus</h1></div>
+      <p class="auth-sub">Start your focus & discipline journey</p>
+      <div id="signup-err" class="err"></div>
+      <div class="field"><label>Full Name</label><input id="s-name" class="inp" type="text" placeholder="Your full name"/></div>
+      <div class="field"><label>Email</label><input id="s-email" class="inp" type="email" placeholder="you@email.com"/></div>
+      <div class="field">
+        <label>Password</label>
+        <input id="s-pass" class="inp" type="password" placeholder="Min. 6 characters" oninput="pwStr(this.value)"/>
+        <div class="pw-str"><div class="pw-str-fill" id="pw-fill"></div></div>
+      </div>
+      <div class="field"><label>Confirm Password</label><input id="s-conf" class="inp" type="password" placeholder="Repeat password"/></div>
+      <button class="btn btn-p btn-full" id="signup-btn" onclick="doSignup()">Create Account →</button>
+      <p class="auth-sw">Have an account? <span onclick="nav('sc-login')">Sign in</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="sc-home">
+  <div class="topbar">
+    <div id="h-logo"></div>
+    <span class="tb-title">Zenova Focus</span>
+    <div class="tb-badge tb-streak" id="h-streak">🔥 0</div>
+    <div class="tb-badge tb-xp" id="h-xp">⚡0</div>
+    <button class="tb-av" id="h-av" onclick="nav('sc-profile')">?</button>
+  </div>
+  <div class="pw">
+    <div class="hero fi">
+      <div class="hero-greet" id="h-greet">Good morning,</div>
+      <div class="hero-name" id="h-name">Athlete 👋</div>
+      <div class="hero-date" id="h-date"></div>
+      <div class="hero-streak" id="h-strbadge">🔥 0 day streak</div>
+    </div>
+    <div class="card fi2" style="margin-bottom:13px;padding:0">
+      <div style="padding:15px 16px 0;display:flex;align-items:center;justify-content:space-between">
+        <div class="card-title" style="margin-bottom:0">⭕ Today's Progress</div>
+        <span id="rings-date" style="font-size:.72rem;color:var(--txt3)"></span>
+      </div>
+      <div class="rings-wrap" id="rings-wrap"></div>
+    </div>
+    <div class="fi3" style="margin-bottom:13px" id="h-lvl"></div>
+    <div class="sg fi4" style="margin-bottom:13px" id="h-stats"></div>
+    <div class="card fi5" style="margin-bottom:11px"><div class="card-title">📋 Today's Tasks</div><div id="h-tasks"></div></div>
+    <div class="card fi5"><div class="card-title">🏋️ Today's Exercise</div><div id="h-exes"></div></div>
+  </div>
+</div>
+
+<!-- TASKS -->
+<div class="screen" id="sc-tasks">
+  <div class="topbar">
+    <div id="sk-logo"></div>
+    <span class="tb-title">Tasks</span>
+    <button class="tb-av" id="sk-av" onclick="nav('sc-profile')">?</button>
+  </div>
+  <div class="pw">
+    <div class="card fi" style="margin-bottom:13px">
+      <div class="card-title">➕ Add Task</div>
+      <div class="field"><label>Task Name</label><input id="sk-task" class="inp" type="text" placeholder="e.g. Deep Work, Study, Reading..."/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div class="field"><label>Duration (min)</label><input id="sk-dur" class="inp" type="number" min="1" max="300" value="30"/></div>
+        <div class="field"><label>Repeat Days</label><input id="sk-days" class="inp" type="number" min="1" max="365" value="1"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div class="field"><label>Time</label><input id="sk-time" class="inp" type="time"/></div>
+        <div class="field"><label>Date</label><input id="sk-date" class="inp" type="date"/></div>
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="sk-cat" class="sel">
+          <option value="">— Select —</option>
+          <option value="Productivity">💼 Productivity</option>
+          <option value="Focus">🎯 Focus</option>
+          <option value="Learning">📚 Learning</option>
+          <option value="Personal">👤 Personal</option>
+          <option value="Rest">😴 Rest</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <input type="checkbox" id="sk-disc" class="chk"/>
+        <label for="sk-disc" style="font-size:.82rem;color:var(--txt2);cursor:pointer">🔒 Discipline Mode</label>
+      </div>
+      <button class="btn btn-p btn-full" onclick="addTask()">Add Task</button>
+    </div>
+    <div class="card fi2">
+      <div class="tabs">
+        <button class="tab active" onclick="skTab('today',this)">Today</button>
+        <button class="tab" onclick="skTab('week',this)">This Week</button>
+        <button class="tab" onclick="skTab('all',this)">All</button>
+      </div>
+      <div id="sk-pending"></div>
+      <div id="sk-done-wrap" style="display:none">
+        <div class="done-hdr"><span>✅ Completed</span></div>
+        <div id="sk-done"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXERCISE -->
+<div class="screen" id="sc-exercise">
+  <div class="topbar">
+    <div id="ex-logo"></div>
+    <span class="tb-title">Exercise</span>
+    <button class="tb-av" id="ex-av" onclick="nav('sc-profile')">?</button>
+  </div>
+  <div class="pw">
+    <div class="card fi" style="margin-bottom:13px">
+      <div class="card-title">💪 Log Exercise</div>
+      <div class="field"><label>Exercise Name</label><input id="ex-task" class="inp" type="text" placeholder="e.g. Morning Run, Push-ups, Yoga..."/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div class="field"><label>Duration (min)</label><input id="ex-dur" class="inp" type="number" min="1" max="300" value="30"/></div>
+        <div class="field"><label>Repeat Days</label><input id="ex-days" class="inp" type="number" min="1" max="365" value="1"/></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+        <div class="field"><label>Time</label><input id="ex-time" class="inp" type="time"/></div>
+        <div class="field"><label>Date</label><input id="ex-date" class="inp" type="date"/></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <input type="checkbox" id="ex-disc" class="chk"/>
+        <label for="ex-disc" style="font-size:.82rem;color:var(--txt2);cursor:pointer">🔒 Discipline Mode</label>
+      </div>
+      <button class="btn btn-p btn-full" onclick="addExercise()">Add Exercise</button>
+    </div>
+    <div class="card fi2">
+      <div class="tabs">
+        <button class="tab active" onclick="exTab('today',this)">Today</button>
+        <button class="tab" onclick="exTab('week',this)">This Week</button>
+        <button class="tab" onclick="exTab('all',this)">All</button>
+      </div>
+      <div id="ex-pending"></div>
+      <div id="ex-done-wrap" style="display:none">
+        <div class="done-hdr"><span>✅ Completed</span></div>
+        <div id="ex-done"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="screen" id="sc-progress">
+  <div class="topbar">
+    <div id="pr-logo"></div>
+    <span class="tb-title">Progress</span>
+    <button class="tb-av" id="pr-av" onclick="nav('sc-profile')">?</button>
+  </div>
+  <div class="pw">
+    <div class="fi" style="margin-bottom:13px" id="pr-lvl"></div>
+    <div class="sg fi2" style="margin-bottom:13px" id="pr-stats"></div>
+    <div class="card fi3" style="margin-bottom:13px">
+      <div class="card-title">🔥 Streak Tracker</div>
+      <div style="display:flex;align-items:center;gap:15px;margin-bottom:15px">
+        <div style="font-size:2.8rem">🔥</div>
+        <div>
+          <div style="font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:700;color:#0a3d8f;line-height:1" id="pr-sv">0</div>
+          <div style="font-size:.74rem;color:var(--txt2);margin-top:3px">day streak · Best: <strong id="pr-best" style="color:var(--acc)">0</strong></div>
+        </div>
+      </div>
+      <div class="sdots" id="pr-dots"></div>
+    </div>
+    <div class="card fi3" style="margin-bottom:13px"><div class="card-title">📈 30-Day Activity</div><div class="bar-chart" id="pr-chart"></div></div>
+    <div class="card fi4" style="margin-bottom:13px">
+      <div class="card-title">🗓 Habit Heatmap <span style="font-size:.72rem;color:var(--txt3);font-weight:400;margin-left:3px">84 days</span></div>
+      <div class="heat" id="pr-heat"></div>
+      <div style="display:flex;gap:5px;align-items:center;margin-top:9px">
+        <span style="font-size:.67rem;color:var(--txt3)">Less</span>
+        <div class="hd h0"></div><div class="hd h1"></div><div class="hd h2"></div><div class="hd h3"></div>
+        <span style="font-size:.67rem;color:var(--txt3)">More</span>
+      </div>
+    </div>
+    <div class="card fi4" style="margin-bottom:13px"><div class="card-title">🤖 AI Smart Suggestions</div><div id="pr-ai"></div></div>
+    <div class="card fi4" style="margin-bottom:13px">
+      <div class="card-title">🎯 Challenges <span style="font-size:.72rem;color:var(--acc);font-weight:600;margin-left:auto;cursor:pointer" onclick="nav('sc-challenges')">All →</span></div>
+      <div id="pr-ch"></div>
+    </div>
+    <div class="card fi5" style="margin-bottom:13px"><div class="card-title">📊 Goals</div><div id="pr-goals"></div></div>
+    <div class="card fi5"><div class="card-title">🏆 Achievements</div><div id="pr-ach"></div></div>
+  </div>
+</div>
+
+<!-- CHALLENGES -->
+<div class="screen" id="sc-challenges">
+  <div class="topbar">
+    <div id="ch-logo"></div>
+    <span class="tb-title">Challenges</span>
+    <button class="tb-av" id="ch-av" onclick="nav('sc-profile')">?</button>
+  </div>
+  <div class="pw">
+    <div class="card fi" style="margin-bottom:13px"><div class="card-title">🔥 Active Challenges</div><div id="ch-active"></div></div>
+    <div class="card fi2" style="margin-bottom:13px"><div class="card-title">🚀 Start a Challenge</div><div id="ch-available"></div></div>
+    <div class="card fi3">
+      <div class="card-title">👥 Friend Challenges</div>
+      <div style="margin-bottom:12px">
+        <div class="field"><label>Invite Friend</label><input id="fc-email" class="inp" type="email" placeholder="friend@email.com"/></div>
+        <button class="btn btn-surf btn-sm" onclick="inviteFriend()">📨 Send Invite</button>
+      </div>
+      <div id="fc-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="sc-profile">
+  <div class="topbar">
+    <div id="pf-logo"></div>
+    <span class="tb-title">Profile</span>
+    <button class="btn btn-g btn-sm" onclick="doLogout()" style="margin-left:auto;font-size:.74rem">Sign Out</button>
+  </div>
+  <div class="pw">
+    <div class="prof-hero fi" id="pf-hero"></div>
+    <div class="card fi2" style="margin-bottom:13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+        <div class="card-title" style="margin-bottom:0">✏️ Profile Info</div>
+        <button class="btn btn-g btn-sm" id="edit-btn" onclick="openEdit()">Edit</button>
+      </div>
+      <div id="pf-view"></div>
+      <div id="pf-form" style="display:none">
+        <div class="field"><label>Name</label><input id="pf-name" class="inp" type="text"/></div>
+        <div class="field"><label>Bio</label><textarea id="pf-bio" class="inp" placeholder="A short bio..."></textarea></div>
+        <div class="field"><label>Goal</label><input id="pf-goal" class="inp" type="text" placeholder="e.g. Run 5k daily"/></div>
+        <div style="display:flex;gap:9px">
+          <button class="btn btn-p btn-sm" onclick="saveProfile()">Save</button>
+          <button class="btn btn-g btn-sm" onclick="closeEdit()">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="card fi3" style="margin-bottom:13px"><div class="card-title">📊 Stats</div><div id="pf-stats"></div></div>
+    <div class="card fi4"><div class="card-title">🏆 Achievements</div><div id="pf-ach"></div></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bnav" id="bottom-nav">
+  <button class="bni" id="bn-home" onclick="nav('sc-home')"><span class="bni-icon">🏠</span><span class="bni-lbl">Home</span></button>
+  <button class="bni" id="bn-tasks" onclick="nav('sc-tasks')"><span class="bni-icon">✅</span><span class="bni-lbl">Tasks</span></button>
+  <button class="bni" id="bn-ex" onclick="nav('sc-exercise')"><span class="bni-icon">💪</span><span class="bni-lbl">Exercise</span></button>
+  <button class="bni" id="bn-prog" onclick="nav('sc-progress')"><span class="bni-icon">📈</span><span class="bni-lbl">Progress</span></button>
+</nav>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged,updateProfile}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,setDoc,getDoc,updateDoc,collection,addDoc,query,where,getDocs,deleteDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const FB=initializeApp({apiKey:"AIzaSyDtB6_I-10g_UzLTO_1NXXjs-gtAcrZeLI",authDomain:"zenova-focus.firebaseapp.com",projectId:"zenova-focus",storageBucket:"zenova-focus.firebasestorage.app",messagingSenderId:"637753538902",appId:"1:637753538902:web:d5f55ecb2999af236bfef7"});
+const auth=getAuth(FB),db=getFirestore(FB);
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let CU=null,UP={};
+// scheds: master array — done field is ALWAYS boolean (never undefined)
+let scheds=[];
+let streak={current:0,best:0,lastDate:null,history:[]};
+let userLevel={xp:0,level:1,totalXp:0};
+let challenges=[],friendChallenges=[];
+let curScreen='',skF='today',exF='today';
+let discInterval=null,discLeft=0,discId=null;
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const today=()=>new Date().toISOString().split('T')[0];
+const fmtD=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+const L30=()=>Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toISOString().split('T')[0]});
+const WK=()=>{const n=new Date(),s=new Date(n);s.setDate(n.getDate()-n.getDay());return Array.from({length:7},(_,i)=>{const d=new Date(s);d.setDate(s.getDate()+i);return d.toISOString().split('T')[0]})};
+const greet=()=>{const h=new Date().getHours();return h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening'};
+const XPL=250;
+const LVL_NAMES={1:'Beginner',2:'Starter',3:'Committed',4:'Focused',5:'Focus Builder',6:'Disciplined',7:'Achiever',8:'Performer',9:'Elite',10:'Discipline Master',11:'Flow State',12:'Zenova Master'};
+const CAT_ICO={Exercise:'🏋️',Productivity:'💼',Focus:'🎯',Learning:'📚',Personal:'👤',Rest:'😴','':'📋'};
+const CAT_CLS={Exercise:'c-ex',Productivity:'c-pr',Focus:'c-fo',Learning:'c-le',Personal:'c-pe',Rest:'c-re','':''};
+const CH_DEFS=[
+  {id:'w30',name:'30 Day Workout',desc:'Exercise every day for 30 days',icon:'💪',days:30,type:'ch-w',cat:'Exercise',xp:500},
+  {id:'d21',name:'21 Day Discipline',desc:'Complete all tasks for 21 days',icon:'🔥',days:21,type:'ch-d',cat:'',xp:400},
+  {id:'f7',name:'7 Day Focus',desc:'Log focus sessions every day for a week',icon:'🎯',days:7,type:'ch-f',cat:'Focus',xp:150},
+  {id:'r30',name:'30 Day Reading',desc:'Read every single day for a month',icon:'📚',days:30,type:'ch-r',cat:'Learning',xp:450},
+  {id:'n14',name:'14 Day No Excuses',desc:'Complete every discipline task for 14 days',icon:'⚡',days:14,type:'ch-d',cat:'',xp:280},
+];
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg,t='ok'){
+  const w=document.getElementById('toast-wrap');
+  const e=document.createElement('div');
+  e.className='toast'+(t==='err'?' terr':t==='gold'?' tgld':'');
+  e.innerHTML=`<span>${t==='err'?'✕':t==='gold'?'🏆':'✓'}</span> ${msg}`;
+  w.appendChild(e);
+  setTimeout(()=>{e.style.opacity='0';e.style.transition='opacity .3s';setTimeout(()=>e.remove(),320)},3500);
+}
+
+// ─── LOGO ─────────────────────────────────────────────────────────────────────
+function mkLogo(sz=32){
+  const img=document.createElement('img');
+  img.src='logo.jpg';img.alt='ZF';
+  img.style.cssText=`width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*.22)}px;object-fit:cover;flex-shrink:0;display:block`;
+  img.onerror=()=>{
+    const fb=document.createElement('div');
+    fb.style.cssText=`width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*.22)}px;background:linear-gradient(135deg,#1a56c4,#4a90e2);display:flex;align-items:center;justify-content:center;font-size:${Math.round(sz*.3)}px;font-weight:800;color:#fff;flex-shrink:0;font-family:'DM Sans',sans-serif`;
+    fb.textContent='ZF';img.replaceWith(fb);
+  };
+  return img;
+}
+function logos(){
+  [['ll',56],['ll2',42],['ll3',42],
+   ['h-logo',32],['sk-logo',32],['ex-logo',32],['pr-logo',32],['ch-logo',32],['pf-logo',32]]
+  .forEach(([id,sz])=>{const el=document.getElementById(id);if(el){el.innerHTML='';el.appendChild(mkLogo(sz));}});
+}
+logos();
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+const SCREENS=['sc-login','sc-signup','sc-home','sc-tasks','sc-exercise','sc-progress','sc-challenges','sc-profile'];
+const MAIN=['sc-home','sc-tasks','sc-exercise','sc-progress'];
+const BNAV=['bn-home','bn-tasks','bn-ex','bn-prog'];
+function nav(id){
+  SCREENS.forEach(s=>{const el=document.getElementById(s);if(el)el.classList.toggle('show',s===id)});
+  curScreen=id;
+  const isAuth=id==='sc-login'||id==='sc-signup';
+  document.getElementById('bottom-nav').style.display=isAuth?'none':'flex';
+  BNAV.forEach((b,i)=>document.getElementById(b)?.classList.toggle('active',id===MAIN[i]));
+  window.scrollTo(0,0);
+  render(id);
+}
+window.nav=nav;
+function render(id){
+  if(id==='sc-home')rHome();
+  else if(id==='sc-tasks')rTasks();
+  else if(id==='sc-exercise')rExercise();
+  else if(id==='sc-progress')rProgress();
+  else if(id==='sc-challenges')rChallenges();
+  else if(id==='sc-profile')rProfile();
+}
+
+// ─── FIRESTORE ────────────────────────────────────────────────────────────────
+async function loadAll(){
+  if(!CU)return;
+  const uid=CU.uid;
+  const pd=await getDoc(doc(db,'users',uid));
+  UP=pd.exists()?pd.data():{name:CU.displayName||'Athlete',bio:'',goal:''};
+  const ss=await getDocs(query(collection(db,'schedules'),where('uid','==',uid)));
+  // KEY FIX: always normalise done to a real boolean
+  scheds=ss.docs.map(d=>{
+    const data=d.data();
+    return{id:d.id,...data,done:data.done===true};
+  });
+  const st=await getDoc(doc(db,'streaks',uid));
+  streak=st.exists()?st.data():{current:0,best:0,lastDate:null,history:[]};
+  const lv=await getDoc(doc(db,'levels',uid));
+  userLevel=lv.exists()?lv.data():{xp:0,level:1,totalXp:0};
+  const ch=await getDoc(doc(db,'challenges',uid));
+  challenges=ch.exists()?ch.data().list||[]:[]; 
+  const fc=await getDocs(query(collection(db,'friendChallenges'),where('participants','array-contains',uid)));
+  friendChallenges=fc.docs.map(d=>({id:d.id,...d.data()}));
+}
+async function saveStreakDB(s){await setDoc(doc(db,'streaks',CU.uid),s);streak=s;}
+async function updStreak(date){
+  if((streak.history||[]).includes(date))return;
+  const yd=new Date(date+'T12:00:00');yd.setDate(yd.getDate()-1);
+  const yStr=yd.toISOString().split('T')[0];
+  const current=streak.lastDate===yStr?streak.current+1:1;
+  const best=Math.max(current,streak.best);
+  await saveStreakDB({current,best,lastDate:date,history:[...(streak.history||[]),date]});
+}
+function updAv(){
+  const i=(UP.name||CU?.displayName||'?')[0].toUpperCase();
+  ['h-av','sk-av','ex-av','pr-av','ch-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
+}
+
+// ─── XP ──────────────────────────────────────────────────────────────────────
+async function addXP(amt){
+  const tot=userLevel.totalXp+amt;
+  const lvl=Math.min(Math.floor(tot/XPL)+1,12);
+  const up=lvl>userLevel.level;
+  userLevel={xp:tot%XPL,level:lvl,totalXp:tot};
+  await setDoc(doc(db,'levels',CU.uid),userLevel);
+  if(up)toast(`🎉 Level Up! Level ${lvl} — ${LVL_NAMES[lvl]||'Master'}`,'gold');
+  updBar();
+}
+function updBar(){
+  const el=document.getElementById('h-xp');if(el)el.textContent=`⚡${userLevel.totalXp}`;
+  const st=document.getElementById('h-streak');if(st)st.textContent=`🔥 ${streak.current}`;
+  const hs=document.getElementById('h-strbadge');if(hs)hs.textContent=`🔥 ${streak.current} day streak`;
+}
+function rLvl(cid){
+  const el=document.getElementById(cid);if(!el)return;
+  const l=userLevel.level,nm=LVL_NAMES[l]||'Master',p=Math.round((userLevel.xp/XPL)*100);
+  el.innerHTML=`<div class="lvl-wrap"><div class="lvl-hdr"><div class="lvl-badge">${l}</div><div><div class="lvl-name">Level ${l} — ${nm}</div><div class="lvl-xp">${userLevel.xp}/${XPL} XP to next · Total: ${userLevel.totalXp}</div></div></div><div class="xp-bar"><div class="xp-fill" style="width:${p}%"></div></div></div>`;
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim(),pass=document.getElementById('l-pass').value;
+  const err=document.getElementById('login-err');err.style.display='none';
+  if(!email||!pass){err.textContent='Fill in all fields.';err.style.display='block';return;}
+  const btn=document.getElementById('login-btn');btn.innerHTML='<span class="spin"></span> Signing in...';btn.disabled=true;
+  try{await signInWithEmailAndPassword(auth,email,pass);}
+  catch(e){btn.innerHTML='Sign In →';btn.disabled=false;
+    const m={'auth/user-not-found':'No account found.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Wrong email or password.','auth/invalid-email':'Invalid email.'};
+    err.textContent=m[e.code]||'Sign in failed.';err.style.display='block';}
+}
+window.doLogin=doLogin;
+async function doSignup(){
+  const name=document.getElementById('s-name').value.trim(),email=document.getElementById('s-email').value.trim();
+  const pass=document.getElementById('s-pass').value,conf=document.getElementById('s-conf').value;
+  const err=document.getElementById('signup-err');err.style.display='none';
+  if(!name||!email||!pass||!conf){err.textContent='Fill in all fields.';err.style.display='block';return;}
+  if(pass.length<6){err.textContent='Password needs 6+ characters.';err.style.display='block';return;}
+  if(pass!==conf){err.textContent='Passwords do not match.';err.style.display='block';return;}
+  const btn=document.getElementById('signup-btn');btn.innerHTML='<span class="spin"></span> Creating...';btn.disabled=true;
+  try{
+    const c=await createUserWithEmailAndPassword(auth,email,pass);
+    await updateProfile(c.user,{displayName:name});
+    await setDoc(doc(db,'users',c.user.uid),{name,email,bio:'',goal:'',joinedDate:today()},{merge:true});
+    await setDoc(doc(db,'levels',c.user.uid),{xp:0,level:1,totalXp:0});
+    await setDoc(doc(db,'challenges',c.user.uid),{list:[]});
+  }catch(e){btn.innerHTML='Create Account →';btn.disabled=false;
+    const m={'auth/email-already-in-use':'Email already registered.','auth/invalid-email':'Invalid email.'};
+    err.textContent=m[e.code]||'Sign up failed.';err.style.display='block';}
+}
+window.doSignup=doSignup;
+async function doLogout(){await signOut(auth);}
+window.doLogout=doLogout;
+function pwStr(v){
+  const f=document.getElementById('pw-fill');let s=0;
+  if(v.length>=6)s++;if(v.length>=10)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;
+  f.style.width=`${s*25}%`;f.style.background=['#c0392b','#c47f00','#1a56c4','#0a3d8f'][s-1]||'var(--surf3)';
+}
+window.pwStr=pwStr;
+
+onAuthStateChanged(auth,async user=>{
+  document.getElementById('load-screen').style.display='none';
+  if(user){CU=user;await loadAll();updAv();updBar();nav('sc-home');}
+  else{CU=null;UP={};scheds=[];streak={current:0,best:0,lastDate:null,history:[]};userLevel={xp:0,level:1,totalXp:0};challenges=[];nav('sc-login');document.getElementById('bottom-nav').style.display='none';}
+});
+
+// ─── RINGS ────────────────────────────────────────────────────────────────────
+function ring(pct,col,lbl,sub){
+  const r=44,c=54,sw=7,circ=2*Math.PI*r,off=circ*(1-Math.min(pct,1));
+  return`<div class="ring-item"><svg class="ring-svg" viewBox="0 0 108 108"><circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="rgba(10,25,60,.1)" stroke-width="${sw}"/><circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" stroke-linecap="round" style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1.2s ease"/><text x="54" y="49" text-anchor="middle" font-family="Playfair Display,serif" font-size="17" font-weight="700" fill="#0a3d8f">${Math.round(pct*100)}%</text><text x="54" y="63" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" fill="#8099b8">${sub}</text></svg><div class="ring-lbl" style="color:${col}">${lbl}</div></div>`;
+}
+function rRings(){
+  const t=today(),all=scheds.filter(s=>s.date===t);
+  const done=all.filter(s=>s.done===true);
+  const exA=all.filter(s=>s.category==='Exercise'),exD=exA.filter(s=>s.done===true);
+  const foA=all.filter(s=>s.category==='Focus'||s.category==='Productivity'),foD=foA.filter(s=>s.done===true);
+  const rw=document.getElementById('rings-wrap');
+  if(rw)rw.innerHTML=
+    ring(all.length?done.length/all.length:0,'#1a56c4','Tasks',`${done.length}/${all.length}`)+
+    ring(exA.length?exD.length/exA.length:0,'#0a3d8f','Exercise',`${exD.length}/${exA.length}`)+
+    ring(foA.length?foD.length/foA.length:0,'#5b3fa8','Focus',`${foD.length}/${foA.length}`);
+  const rd=document.getElementById('rings-date');
+  if(rd)rd.textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+function rHome(){
+  const name=(UP.name||CU?.displayName||'Athlete').split(' ')[0];
+  document.getElementById('h-greet').textContent=greet()+',';
+  document.getElementById('h-name').textContent=name+' 👋';
+  document.getElementById('h-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  document.getElementById('h-av').textContent=name[0].toUpperCase();
+  updBar();rRings();rLvl('h-lvl');
+  const t=today();
+  document.getElementById('h-stats').innerHTML=[
+    {i:'🔥',v:streak.current,l:'Streak'},{i:'⚡',v:userLevel.totalXp,l:'Total XP'},
+    {i:'✅',v:scheds.filter(s=>s.done===true&&s.date===t).length,l:'Done Today'},{i:'🎯',v:challenges.filter(c=>!c.finished).length,l:'Challenges'},
+  ].map(s=>`<div class="sbox"><div class="si">${s.i}</div><div class="sv">${s.v}</div><div class="sl">${s.l}</div></div>`).join('');
+
+  // Today non-exercise tasks
+  const tsk=scheds.filter(s=>s.date===t&&s.category!=='Exercise');
+  const tPend=tsk.filter(s=>s.done!==true),tDone=tsk.filter(s=>s.done===true);
+  document.getElementById('h-tasks').innerHTML=tsk.length===0
+    ?`<div class="empty"><div class="ei">📋</div><p>No tasks today.</p><button class="btn btn-g btn-sm" onclick="nav('sc-tasks')">Add tasks →</button></div>`
+    :[...tPend,...tDone].slice(0,5).map(s=>`
+      <div class="li">
+        <span style="font-size:1.1rem">${s.done===true?'✅':'⬜'}</span>
+        <div class="li-body">
+          <div class="li-name" style="${s.done===true?'text-decoration:line-through;color:var(--txt3)':''}">${s.task}</div>
+          <div class="li-sub">${s.time?'⏰ '+s.time+' · ':''}${s.duration?s.duration+' min':''}</div>
+        </div>
+        <span class="tag ${s.done===true?'t-grn':'t-ora'}">${s.done===true?'Done':'Pending'}</span>
+      </div>`).join('')+(tsk.length>5?`<div style="font-size:.77rem;color:var(--txt2);padding:8px 0">+${tsk.length-5} more · <span style="cursor:pointer;font-weight:700;color:var(--acc)" onclick="nav('sc-tasks')">See all</span></div>`:'');
+
+  // Today exercise
+  const exs=scheds.filter(s=>s.date===t&&s.category==='Exercise');
+  const ePend=exs.filter(s=>s.done!==true),eDone=exs.filter(s=>s.done===true);
+  document.getElementById('h-exes').innerHTML=exs.length===0
+    ?`<div class="empty"><div class="ei">💪</div><p>No exercise today.</p><button class="btn btn-g btn-sm" onclick="nav('sc-exercise')">Add exercise →</button></div>`
+    :[...ePend,...eDone].slice(0,4).map(s=>`
+      <div class="li">
+        <span style="font-size:1.1rem">${s.done===true?'✅':'⏳'}</span>
+        <div class="li-body">
+          <div class="li-name" style="${s.done===true?'text-decoration:line-through;color:var(--txt3)':''}">${s.task}</div>
+          <div class="li-sub">⏱ ${s.duration||30} min</div>
+        </div>
+        <span class="tag ${s.done===true?'t-grn':'t-ora'}">${s.done===true?'Done':'Pending'}</span>
+      </div>`).join('');
+}
+
+// ─── CARD BUILDER ─────────────────────────────────────────────────────────────
+function mkCard(s,showDate){
+  const ic=CAT_ICO[s.category]||'📋',cc=CAT_CLS[s.category]||'';
+  const isDone=s.done===true;
+  return`<div class="tc${isDone?' tc-done':''}">
+    <div class="tc-hdr">
+      <div class="tc-icon ${cc}">${ic}</div>
+      <div style="flex:1;min-width:0">
+        <div class="tc-title${isDone?' done':''}">${s.task}</div>
+        <div class="tc-meta">${s.time?`⏰ ${s.time} · `:''}${s.duration?s.duration+' min':''}${showDate?' · '+fmtD(s.date):''}${s.disciplineMode?' <span class="tag t-red" style="margin-left:3px">🔒</span>':''}</div>
+      </div>
+      <div class="tc-acts">
+        ${isDone
+          ?`<span class="done-badge">✅ Done</span>`
+          :`<button class="btn btn-grn btn-sm" onclick="startTask('${s.id}')">▶ Start</button>`
+        }
+        <button class="btn btn-g btn-sm" onclick="toggleDone('${s.id}',${!isDone})">${isDone?'↩':'✓'}</button>
+        <button class="btn btn-red btn-sm" onclick="delTask('${s.id}')">✕</button>
+      </div>
+    </div>
+    ${s.days&&s.days>1?`<div style="margin-top:9px"><div style="font-size:.69rem;color:var(--txt3);margin-bottom:4px">📅 ${s.daysCompleted||0}/${s.days} days</div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(((s.daysCompleted||0)/s.days)*100)}%"></div></div></div>`:''}
+  </div>`;
+}
+
+// ─── TASKS SCREEN ─────────────────────────────────────────────────────────────
+function rTasks(){
+  document.getElementById('sk-date').value=today();
+  document.getElementById('sk-av').textContent=(UP.name||'?')[0].toUpperCase();
+  renderTasks();
+}
+function renderTasks(){
+  const t=today(),sd=skF!=='today';
+  let all=skF==='today'
+    ?scheds.filter(s=>s.date===t&&s.category!=='Exercise')
+    :skF==='week'
+    ?scheds.filter(s=>WK().includes(s.date)&&s.category!=='Exercise')
+    :scheds.filter(s=>s.category!=='Exercise');
+  all.sort((a,b)=>a.date!==b.date?a.date.localeCompare(b.date):(a.time||'').localeCompare(b.time||''));
+  const pend=all.filter(s=>s.done!==true);
+  const done=all.filter(s=>s.done===true);
+  const pEl=document.getElementById('sk-pending');
+  const dEl=document.getElementById('sk-done');
+  const dW=document.getElementById('sk-done-wrap');
+  if(all.length===0){
+    pEl.innerHTML=`<div class="empty"><div class="ei">✅</div><p>No tasks ${skF==='today'?'today':skF==='week'?'this week':'yet'}.</p></div>`;
+    dW.style.display='none';return;
+  }
+  pEl.innerHTML=pend.length===0
+    ?`<div style="text-align:center;padding:14px 0;font-size:.83rem;color:var(--grn);font-weight:600">🎉 All tasks completed!</div>`
+    :pend.map(s=>mkCard(s,sd)).join('');
+  if(done.length>0){dW.style.display='block';dEl.innerHTML=done.map(s=>mkCard(s,sd)).join('');}
+  else{dW.style.display='none';dEl.innerHTML='';}
+}
+window.skTab=function(f,el){skF=f;document.querySelectorAll('#sc-tasks .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderTasks();};
+window.addTask=async function(){
+  const task=document.getElementById('sk-task').value.trim();
+  if(!task){toast('Enter a task name.','err');return;}
+  const time=document.getElementById('sk-time').value,date=document.getElementById('sk-date').value||today();
+  const cat=document.getElementById('sk-cat').value,dur=parseInt(document.getElementById('sk-dur').value)||30;
+  const days=parseInt(document.getElementById('sk-days').value)||1,disc=document.getElementById('sk-disc').checked;
+  const ref=await addDoc(collection(db,'schedules'),{uid:CU.uid,task,time,date,category:cat,done:false,duration:dur,days,daysCompleted:0,disciplineMode:disc,createdAt:Date.now()});
+  scheds.push({id:ref.id,uid:CU.uid,task,time,date,category:cat,done:false,duration:dur,days,daysCompleted:0,disciplineMode:disc});
+  document.getElementById('sk-task').value='';document.getElementById('sk-time').value='';document.getElementById('sk-disc').checked=false;
+  renderTasks();toast('Task added! 📋');
+};
+
+// ─── EXERCISE SCREEN ──────────────────────────────────────────────────────────
+function rExercise(){
+  document.getElementById('ex-date').value=today();
+  document.getElementById('ex-av').textContent=(UP.name||'?')[0].toUpperCase();
+  renderExes();
+}
+function renderExes(){
+  const t=today(),sd=exF!=='today';
+  let all=exF==='today'
+    ?scheds.filter(s=>s.category==='Exercise'&&s.date===t)
+    :exF==='week'
+    ?scheds.filter(s=>s.category==='Exercise'&&WK().includes(s.date))
+    :scheds.filter(s=>s.category==='Exercise');
+  all.sort((a,b)=>a.date!==b.date?a.date.localeCompare(b.date):(a.time||'').localeCompare(b.time||''));
+  const pend=all.filter(s=>s.done!==true);
+  const done=all.filter(s=>s.done===true);
+  const pEl=document.getElementById('ex-pending');
+  const dEl=document.getElementById('ex-done');
+  const dW=document.getElementById('ex-done-wrap');
+  if(all.length===0){
+    pEl.innerHTML=`<div class="empty"><div class="ei">💪</div><p>No exercise ${exF==='today'?'today':exF==='week'?'this week':'yet'}.</p></div>`;
+    dW.style.display='none';return;
+  }
+  pEl.innerHTML=pend.length===0
+    ?`<div style="text-align:center;padding:14px 0;font-size:.83rem;color:var(--grn);font-weight:600">🎉 All exercises completed!</div>`
+    :pend.map(s=>mkCard(s,sd)).join('');
+  if(done.length>0){dW.style.display='block';dEl.innerHTML=done.map(s=>mkCard(s,sd)).join('');}
+  else{dW.style.display='none';dEl.innerHTML='';}
+}
+window.exTab=function(f,el){exF=f;document.querySelectorAll('#sc-exercise .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderExes();};
+window.addExercise=async function(){
+  const task=document.getElementById('ex-task').value.trim();
+  if(!task){toast('Enter an exercise name.','err');return;}
+  const time=document.getElementById('ex-time').value,date=document.getElementById('ex-date').value||today();
+  const dur=parseInt(document.getElementById('ex-dur').value)||30;
+  const days=parseInt(document.getElementById('ex-days').value)||1,disc=document.getElementById('ex-disc').checked;
+  const ref=await addDoc(collection(db,'schedules'),{uid:CU.uid,task,time,date,category:'Exercise',done:false,duration:dur,days,daysCompleted:0,disciplineMode:disc,createdAt:Date.now()});
+  scheds.push({id:ref.id,uid:CU.uid,task,time,date,category:'Exercise',done:false,duration:dur,days,daysCompleted:0,disciplineMode:disc});
+  document.getElementById('ex-task').value='';document.getElementById('ex-time').value='';document.getElementById('ex-disc').checked=false;
+  renderExes();toast('Exercise added! 💪');
+};
+
+// ─── TOGGLE & DELETE — THE CORE FIX ──────────────────────────────────────────
+// Uses strict boolean true/false always; optimistic update then DB write
+window.toggleDone=async function(id,newDone){
+  // 1. Update local state immediately with strict boolean
+  scheds=scheds.map(s=>s.id===id?{...s,done:newDone===true}:s);
+  // 2. Re-render immediately so user sees the change right away
+  rerender();
+  // 3. Write to DB
+  await updateDoc(doc(db,'schedules',id),{done:newDone===true});
+  // 4. Side effects for completing
+  if(newDone===true){
+    const t=scheds.find(s=>s.id===id);
+    const xp=(t&&t.disciplineMode)?30:15;
+    await addXP(xp);
+    await updStreak(today());
+    if(t&&t.days&&t.days>1){
+      const dc=(t.daysCompleted||0)+1;
+      await updateDoc(doc(db,'schedules',id),{daysCompleted:dc});
+      scheds=scheds.map(s=>s.id===id?{...s,daysCompleted:dc}:s);
+    }
+    chkAllDone();chkChallenge(scheds.find(s=>s.id===id));chkAch();
+    toast(`✅ Done! +${(scheds.find(s=>s.id===id)?.disciplineMode)?30:15} XP`);
+  } else {
+    toast('↩ Marked as pending');
+  }
+  // 5. Re-render again after side effects
+  rerender();
+};
+window.delTask=async function(id){
+  scheds=scheds.filter(s=>s.id!==id);
+  rerender();
+  await deleteDoc(doc(db,'schedules',id));
+};
+
+// Re-render whatever screen is active
+function rerender(){
+  if(curScreen==='sc-home')rHome();
+  else if(curScreen==='sc-tasks')renderTasks();
+  else if(curScreen==='sc-exercise')renderExes();
+  else if(curScreen==='sc-progress')rProgress();
+}
+
+function chkAllDone(){
+  const t=scheds.filter(s=>s.date===today());
+  if(t.length>0&&t.every(s=>s.done===true)){toast('🎉 All tasks done today! +50 XP','gold');addXP(50);}
+}
+
+// ─── START TASK ───────────────────────────────────────────────────────────────
+window.startTask=function(id){
+  const t=scheds.find(s=>s.id===id);if(!t)return;
+  if(t.disciplineMode)openDisc(t);else toggleDone(id,true);
+};
+
+// ─── DISCIPLINE ───────────────────────────────────────────────────────────────
+function openDisc(task){
+  discId=task.id;discLeft=(task.duration||30)*60;
+  document.getElementById('disc-tname').textContent=task.task;
+  document.getElementById('disc-modal').classList.add('show');
+  tickDisc();
+  if(discInterval)clearInterval(discInterval);
+  discInterval=setInterval(()=>{discLeft--;tickDisc();if(discLeft<=0){clearInterval(discInterval);discInterval=null;document.getElementById('disc-phase').textContent='Time is up!';}},1000);
+}
+function tickDisc(){
+  document.getElementById('disc-timer').textContent=`${String(Math.floor(discLeft/60)).padStart(2,'0')}:${String(discLeft%60).padStart(2,'0')}`;
+}
+window.discDone=async function(){
+  if(discInterval){clearInterval(discInterval);discInterval=null;}
+  document.getElementById('disc-modal').classList.remove('show');
+  if(discId){await toggleDone(discId,true);}
+  discId=null;
+};
+window.discRestart=async function(){
+  if(discInterval){clearInterval(discInterval);discInterval=null;}
+  document.getElementById('disc-modal').classList.remove('show');
+  const t=today(),todayT=scheds.filter(s=>s.date===t&&s.done===true);
+  for(const s of todayT){await updateDoc(doc(db,'schedules',s.id),{done:false});}
+  scheds=scheds.map(s=>s.date===t?{...s,done:false}:s);
+  toast('🔄 Day restarted!');rerender();discId=null;
+};
+window.discClose=function(){
+  if(discInterval){clearInterval(discInterval);discInterval=null;}
+  document.getElementById('disc-modal').classList.remove('show');discId=null;
+};
+
+// ─── CHALLENGES ───────────────────────────────────────────────────────────────
+async function saveCh(){await setDoc(doc(db,'challenges',CU.uid),{list:challenges});}
+window.startChallenge=async function(id){
+  const def=CH_DEFS.find(c=>c.id===id);if(!def)return;
+  if(challenges.find(c=>c.id===id)){toast('Already active!','err');return;}
+  challenges.push({...def,startDate:today(),completedDays:[],finished:false});
+  await saveCh();toast(`🎯 "${def.name}" started!`);rChallenges();
+};
+window.logDay=async function(id){
+  const t=today(),ch=challenges.find(c=>c.id===id);
+  if(!ch||(ch.completedDays||[]).includes(t)){toast('Already logged today!','err');return;}
+  ch.completedDays=[...(ch.completedDays||[]),t];
+  if(ch.completedDays.length>=ch.days){ch.finished=true;await addXP(ch.xp||200);toast(`🏆 "${ch.name}" COMPLETE! +${ch.xp||200} XP`,'gold');}
+  else{await addXP(10);toast(`Day ${ch.completedDays.length}/${ch.days} logged! +10 XP`);}
+  await saveCh();rChallenges();
+};
+function chkChallenge(task){
+  if(!task)return;
+  challenges.forEach(ch=>{if(!ch.finished&&ch.cat&&ch.cat===task.category)logDay(ch.id);});
+}
+function rChallenges(){
+  document.getElementById('ch-av').textContent=(UP.name||'?')[0].toUpperCase();
+  const t=today(),active=challenges.filter(c=>!c.finished);
+  document.getElementById('ch-active').innerHTML=active.length===0
+    ?`<div class="empty"><div class="ei">🎯</div><p>No active challenges.</p></div>`
+    :active.map(ch=>{
+      const done=ch.completedDays||[],pct=Math.round((done.length/ch.days)*100);
+      const days=Array.from({length:ch.days},(_,i)=>{const d=new Date(ch.startDate+'T12:00:00');d.setDate(d.getDate()+i);return d.toISOString().split('T')[0];});
+      return`<div class="ch-card active ${ch.type}"><div class="ch-hdr"><div class="ch-ico">${ch.icon}</div><div style="flex:1"><div style="font-weight:700;font-size:.9rem">${ch.name}</div><div style="font-size:.71rem;color:var(--txt3);margin-top:2px">${done.length}/${ch.days} days · ${pct}%</div></div>${!done.includes(t)?`<button class="btn btn-grn btn-sm" onclick="logDay('${ch.id}')">Log Today</button>`:'<span class="tag t-grn">✓ Today</span>'}</div><div class="ch-days">${days.map(d=>`<div class="ch-day${done.includes(d)?' done':d===t?' today':''}"></div>`).join('')}</div><div class="pw-bar" style="margin-top:8px"><div class="pw-fill" style="width:${pct}%"></div></div></div>`;
+    }).join('');
+  const aIds=new Set(challenges.map(c=>c.id));
+  const avail=CH_DEFS.filter(c=>!aIds.has(c.id));
+  document.getElementById('ch-available').innerHTML=(avail.length===0?'<div style="font-size:.83rem;color:var(--txt3)">All challenges started!</div>':'')+
+    avail.map(c=>`<div class="ch-card ${c.type}"><div class="ch-hdr"><div class="ch-ico">${c.icon}</div><div style="flex:1"><div style="font-weight:700;font-size:.9rem">${c.name}</div><div style="font-size:.71rem;color:var(--txt3);margin-top:2px">${c.desc} · 🏆 +${c.xp} XP</div></div><button class="btn btn-p btn-sm" onclick="startChallenge('${c.id}')">Start</button></div></div>`).join('')+
+    challenges.filter(c=>c.finished).map(ch=>`<div class="ch-card ${ch.type}" style="opacity:.5"><div class="ch-hdr"><div class="ch-ico">${ch.icon}</div><div><div style="font-weight:700;font-size:.9rem">${ch.name}</div><div style="font-size:.71rem;color:var(--txt3)">Completed 🏆</div></div><span class="tag t-grn">✓</span></div></div>`).join('');
+  rFriends();
+}
+function rFriends(){
+  const el=document.getElementById('fc-list');if(!el)return;
+  if(!friendChallenges.length){el.innerHTML=`<div style="font-size:.81rem;color:var(--txt3);padding:8px 0">No friend challenges yet.</div>`;return;}
+  el.innerHTML=friendChallenges.map(fc=>{
+    const uid=CU.uid,my=fc.scores?.[uid]||0,other=fc.participants.filter(p=>p!==uid)[0],oName=fc.names?.[other]||'Friend',oScore=fc.scores?.[other]||0;
+    return`<div class="fc-card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="fc-av">${oName[0].toUpperCase()}</div><div><div style="font-weight:700;font-size:.88rem">${oName}</div><div style="font-size:.71rem;color:var(--txt3)">${my>oScore?'You\'re winning! 🔥':'Keep going!'}</div></div></div><div style="display:flex;align-items:center;gap:8px"><div style="flex:1;text-align:center"><div class="fc-num" style="color:var(--acc)">${my}</div><div style="font-size:.64rem;color:var(--txt3)">You</div></div><div style="font-size:.72rem;color:var(--txt3)">vs</div><div style="flex:1;text-align:center"><div class="fc-num" style="color:var(--txt2)">${oScore}</div><div style="font-size:.64rem;color:var(--txt3)">${oName}</div></div></div></div>`;
+  }).join('');
+}
+window.inviteFriend=async function(){
+  const email=document.getElementById('fc-email').value.trim();if(!email){toast('Enter email.','err');return;}
+  await addDoc(collection(db,'friendChallenges'),{participants:[CU.uid],pendingEmail:email,scores:{[CU.uid]:0},names:{[CU.uid]:UP.name||'Friend'},createdAt:Date.now(),week:today()});
+  document.getElementById('fc-email').value='';toast(`📨 Invite sent to ${email}!`);
+};
+
+// ─── PROGRESS ─────────────────────────────────────────────────────────────────
+function rProgress(){
+  document.getElementById('pr-av').textContent=(UP.name||'?')[0].toUpperCase();
+  rLvl('pr-lvl');
+  const t=today(),compT=scheds.filter(s=>s.done===true).length,actD=[...new Set(scheds.filter(s=>s.done===true).map(s=>s.date))].length;
+  const totMin=scheds.reduce((a,s)=>a+(s.done===true?(s.duration||0):0),0),exDone=scheds.filter(s=>s.done===true&&s.category==='Exercise').length;
+  document.getElementById('pr-stats').innerHTML=[
+    {i:'⏱️',v:totMin,l:'Total Mins'},{i:'✅',v:compT,l:'Done'},
+    {i:'📆',v:actD,l:'Active Days'},{i:'💪',v:exDone,l:'Exercise'},
+  ].map(s=>`<div class="sbox"><div class="si">${s.i}</div><div class="sv">${s.v}</div><div class="sl">${s.l}</div></div>`).join('');
+  document.getElementById('pr-sv').textContent=streak.current;
+  document.getElementById('pr-best').textContent=streak.best;
+  document.getElementById('pr-dots').innerHTML=L30().slice(-14).map(d=>{const on=(streak.history||[]).includes(d);return`<div class="sdot ${on?'on':'off'}">${new Date(d+'T12:00:00').getDate()}</div>`;}).join('');
+  const d30=L30(),mx=Math.max(...d30.map(d=>scheds.filter(s=>s.done===true&&s.date===d).length),1);
+  document.getElementById('pr-chart').innerHTML=d30.map(d=>{const cnt=scheds.filter(s=>s.done===true&&s.date===d).length;const h=Math.max(Math.round((cnt/mx)*62),cnt>0?4:2);return`<div class="bar-col"><div class="bar-fill" style="height:${h}px;background:${d===t?'var(--acc)':cnt>0?'var(--acc2)':'var(--surf3)'};opacity:${d===t?1:cnt>0?.75:.3}"></div></div>`;}).join('');
+  const h84=Array.from({length:84},(_,i)=>{const d=new Date();d.setDate(d.getDate()-83+i);return d.toISOString().split('T')[0]});
+  document.getElementById('pr-heat').innerHTML=h84.map(d=>{const cnt=scheds.filter(s=>s.done===true&&s.date===d).length;const lv=cnt===0?0:cnt<2?1:cnt<4?2:3;return`<div class="hd h${lv}" title="${d}: ${cnt}"></div>`;}).join('');
+  rAI();
+  const acCh=challenges.filter(c=>!c.finished).slice(0,2);
+  document.getElementById('pr-ch').innerHTML=acCh.length===0
+    ?`<div style="font-size:.82rem;color:var(--txt3)">No active challenges. <span style="color:var(--acc);cursor:pointer" onclick="nav('sc-challenges')">Start one →</span></div>`
+    :acCh.map(ch=>{const p=Math.round(((ch.completedDays||[]).length/ch.days)*100);return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:.82rem;font-weight:600">${ch.icon} ${ch.name}</span><span style="font-size:.77rem;font-weight:700;color:var(--acc)">${p}%</span></div><div class="pw-bar"><div class="pw-fill" style="width:${p}%"></div></div></div>`;}).join('');
+  const wk=WK(),wkD=scheds.filter(s=>s.done===true&&wk.includes(s.date)),wkA=[...new Set(wkD.map(s=>s.date))].length;
+  document.getElementById('pr-goals').innerHTML=[
+    {l:'Weekly active days (goal: 5)',v:Math.min(wkA,5),max:5},
+    {l:'Task completion rate',v:scheds.length?Math.round((compT/scheds.length)*100):0,max:100,pct:true},
+    {l:'Discipline Mode rate',v:scheds.filter(s=>s.disciplineMode).length?Math.round((scheds.filter(s=>s.disciplineMode&&s.done===true).length/scheds.filter(s=>s.disciplineMode).length)*100):0,max:100,pct:true},
+  ].map(g=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:.79rem;color:var(--txt2)">${g.l}</span><span style="font-size:.79rem;font-weight:700;color:var(--acc)">${g.pct?g.v+'%':g.v+'/'+g.max}</span></div><div class="pw-bar"><div class="pw-fill" style="width:${(g.v/g.max)*100}%"></div></div></div>`).join('');
+  rAch('pr-ach');
+}
+function rAI(){
+  const el=document.getElementById('pr-ai');if(!el)return;
+  const sug=[];
+  const done=scheds.filter(s=>s.done===true&&s.time);
+  const tg={morning:0,afternoon:0,evening:0};
+  done.forEach(s=>{const h=parseInt(s.time?.split(':')[0]||12);if(h<12)tg.morning++;else if(h<17)tg.afternoon++;else tg.evening++;});
+  const best=Object.entries(tg).sort((a,b)=>b[1]-a[1])[0];
+  if(best[1]>0){const tm={morning:'🌅 mornings',afternoon:'☀️ afternoons',evening:'🌙 evenings'};sug.push({icon:'⏰',text:`You complete most tasks in the ${tm[best[0]]}. Schedule your hardest work then.`});}
+  if(streak.current>=3)sug.push({icon:'🔥',text:`${streak.current}-day streak! ${streak.best>streak.current?`${streak.best-streak.current} more days to beat your record!`:'New personal best — keep it up!'}`});
+  const disc=scheds.filter(s=>s.disciplineMode),discDone=disc.filter(s=>s.done===true);
+  if(disc.length>0){const r=Math.round((discDone.length/disc.length)*100);sug.push({icon:'🔒',text:`Discipline Mode: ${r}% done. ${r>=80?'Iron will! 💪':'Keep pushing!'}`});}
+  const wkD=scheds.filter(s=>s.done===true&&WK().includes(s.date)).length;
+  if(wkD>0)sug.push({icon:'📈',text:`${wkD} tasks this week. ${wkD>=10?'Incredible!':wkD>=5?'Good progress!':'Aim for 5 minimum.'}`});
+  el.innerHTML=sug.length===0
+    ?`<div style="font-size:.81rem;color:var(--txt3)">Complete more tasks to get suggestions.</div>`
+    :sug.slice(0,3).map(s=>`<div class="ai-box"><div class="ai-lbl">🤖 Smart Insight</div><div style="font-size:1.1rem;margin-bottom:4px">${s.icon}</div><div style="font-size:.82rem;color:var(--txt);line-height:1.55">${s.text}</div></div>`).join('');
+}
+function getAch(){
+  const c=scheds.filter(s=>s.done===true).length,ex=scheds.filter(s=>s.done===true&&s.category==='Exercise').length;
+  const m=scheds.reduce((a,s)=>a+(s.done===true?(s.duration||0):0),0),h=Math.floor(m/60);
+  const disc=scheds.filter(s=>s.disciplineMode&&s.done===true).length,chF=challenges.filter(c=>c.finished).length;
+  return[
+    {i:'🌟',n:'First Steps',d:'Complete your first task',e:c>=1},
+    {i:'🔥',n:'On Fire',d:'3-day streak',e:streak.best>=3},
+    {i:'💎',n:'Diamond Focus',d:'7-day streak',e:streak.best>=7},
+    {i:'🏆',n:'Streak Legend',d:'30-day streak',e:streak.best>=30},
+    {i:'💪',n:'Fitness Starter',d:'Complete 10 exercises',e:ex>=10},
+    {i:'⏱️',n:'10 Hours',d:'Log 10 total hours',e:h>=10},
+    {i:'🌙',n:'100 Hours',d:'Log 100 total hours',e:h>=100},
+    {i:'🔒',n:'Iron Will',d:'10 Discipline Mode tasks',e:disc>=10},
+    {i:'🎯',n:'Challenge Complete',d:'Finish a 30-day challenge',e:chF>=1},
+    {i:'⚡',n:'Level 5',d:'Reach Level 5',e:userLevel.level>=5},
+    {i:'👑',n:'Master',d:'Reach Level 10',e:userLevel.level>=10},
+    {i:'📋',n:'Centurion',d:'Complete 100 tasks',e:c>=100},
+  ];
+}
+function chkAch(){
+  const achs=getAch(),prev=UP.achievements||[];
+  const neo=achs.filter(a=>a.e&&!prev.includes(a.n));
+  if(neo.length){neo.forEach(a=>toast(`🏆 Achievement: "${a.n}"!`,'gold'));UP={...UP,achievements:[...prev,...neo.map(a=>a.n)]};setDoc(doc(db,'users',CU.uid),{achievements:UP.achievements},{merge:true});}
+}
+function rAch(cid){
+  const el=document.getElementById(cid);if(!el)return;
+  el.innerHTML=getAch().map(a=>`<div class="ach ${a.e?'unlocked':'locked'}"><div class="ach-ico">${a.i}</div><div style="flex:1"><div class="ach-name">${a.n}</div><div class="ach-desc">${a.d}</div></div>${a.e?'<span class="tag t-grn">Earned</span>':'<span class="tag t-ora">Locked</span>'}</div>`).join('');
+}
+
+// ─── PROFILE ──────────────────────────────────────────────────────────────────
+function rProfile(){
+  const name=UP.name||CU?.displayName||'Athlete',email=CU?.email||'';
+  document.getElementById('pf-logo').innerHTML='';document.getElementById('pf-logo').appendChild(mkLogo(32));
+  const wk=WK(),wkT=scheds.filter(s=>wk.includes(s.date)),wkD=wkT.filter(s=>s.done===true);
+  const fM=wkD.filter(s=>s.category==='Focus'||s.category==='Productivity').reduce((a,s)=>a+(s.duration||0),0);
+  const bDay=wk.map(d=>({d,n:scheds.filter(s=>s.done===true&&s.date===d).length})).sort((a,b)=>b.n-a.n);
+  const rep={done:wkD.length,total:wkT.length,fH:Math.round(fM/60*10)/10,best:bDay[0]?.n>0?fmtD(bDay[0].d):'—'};
+  document.getElementById('pf-hero').innerHTML=`
+    <div class="prof-av">${name[0].toUpperCase()}</div>
+    <div class="prof-name">${name}</div><div class="prof-email">${email}</div>
+    ${UP.bio?`<div style="color:var(--txt2);font-size:.77rem;margin-top:7px">${UP.bio}</div>`:''}
+    ${UP.goal?`<div style="color:var(--txt3);font-size:.73rem;margin-top:4px">🎯 ${UP.goal}</div>`:''}
+    <div class="streak-badge">🔥 ${streak.current} Day Streak · Best: ${streak.best}</div>
+    <div style="display:flex;gap:7px;margin-top:10px;justify-content:center">
+      <div style="background:rgba(26,86,196,.07);border:1px solid rgba(26,86,196,.14);border-radius:11px;padding:7px 13px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:#0a3d8f">${userLevel.level}</div><div style="font-size:.63rem;color:var(--txt3)">Level</div></div>
+      <div style="background:rgba(196,127,0,.07);border:1px solid rgba(196,127,0,.14);border-radius:11px;padding:7px 13px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:#c47f00">${userLevel.totalXp}</div><div style="font-size:.63rem;color:var(--txt3)">Total XP</div></div>
+      <div style="background:rgba(26,86,196,.06);border:1px solid rgba(26,86,196,.13);border-radius:11px;padding:7px 13px;text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:#1a56c4">${challenges.filter(c=>c.finished).length}</div><div style="font-size:.63rem;color:var(--txt3)">Challenges</div></div>
+    </div>`;
+  document.getElementById('pf-view').innerHTML=[
+    {i:'👤',l:'Name',v:name},{i:'📧',l:'Email',v:email},
+    {i:'💬',l:'Bio',v:UP.bio||'—'},{i:'🎯',l:'Goal',v:UP.goal||'—'},
+    {i:'📅',l:'Joined',v:UP.joinedDate?fmtD(UP.joinedDate):'Today'},
+  ].map(s=>`<div class="li"><span>${s.i}</span><div class="li-body"><div class="li-name">${s.l}</div></div><div style="font-size:.8rem;color:var(--txt2);text-align:right;max-width:175px;word-break:break-all">${s.v}</div></div>`).join('');
+  document.getElementById('pf-stats').innerHTML=`
+    <div style="background:var(--surf2);border-radius:12px;padding:13px;margin-bottom:13px;border:1px solid var(--bdr)">
+      <div style="font-size:.7rem;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px">📊 This Week</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        ${[{l:'Done',v:`${rep.done}/${rep.total}`},{l:'Focus Hrs',v:rep.fH+'h'},{l:'Best Day',v:rep.best}].map(x=>`<div style="text-align:center"><div style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#0a3d8f">${x.v}</div><div style="font-size:.63rem;color:var(--txt3);margin-top:1px">${x.l}</div></div>`).join('')}
+      </div>
+    </div>`+
+    [{i:'✅',l:'Total Done',v:scheds.filter(s=>s.done===true).length},
+    {i:'📅',l:'Active Days',v:[...new Set(scheds.filter(s=>s.done===true).map(s=>s.date))].length},
+    {i:'🔥',l:'Best Streak',v:streak.best+' days'},
+    {i:'⚡',l:'Total XP',v:userLevel.totalXp},
+    {i:'🎯',l:'Challenges Done',v:challenges.filter(c=>c.finished).length},
+    {i:'🔒',l:'Discipline Done',v:scheds.filter(s=>s.disciplineMode&&s.done===true).length},
+  ].map(s=>`<div class="li"><span style="font-size:1.1rem">${s.i}</span><div class="li-body"><div class="li-name">${s.l}</div></div><div style="font-weight:700;color:var(--acc);font-size:.84rem">${s.v}</div></div>`).join('');
+  rAch('pf-ach');
+}
+window.openEdit=function(){document.getElementById('pf-name').value=UP.name||'';document.getElementById('pf-bio').value=UP.bio||'';document.getElementById('pf-goal').value=UP.goal||'';document.getElementById('pf-form').style.display='block';document.getElementById('pf-view').style.display='none';document.getElementById('edit-btn').style.display='none';};
+window.closeEdit=function(){document.getElementById('pf-form').style.display='none';document.getElementById('pf-view').style.display='block';document.getElementById('edit-btn').style.display='';};
+window.saveProfile=async function(){
+  const name=document.getElementById('pf-name').value.trim();if(!name){toast('Name cannot be empty.','err');return;}
+  const data={name,bio:document.getElementById('pf-bio').value.trim(),goal:document.getElementById('pf-goal').value.trim()};
+  await setDoc(doc(db,'users',CU.uid),data,{merge:true});UP={...UP,...data};
+  window.closeEdit();rProfile();updAv();toast('Profile updated! ✅');
+};
+
+document.getElementById('l-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('s-conf').addEventListener('keydown',e=>{if(e.key==='Enter')doSignup()});
+</script>
+</body>
+</html>
